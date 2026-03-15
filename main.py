@@ -1,10 +1,20 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 from pydantic import BaseModel
-from db import supabase
+from database import supabase
 from utils import generate_qr_base64
 from datetime import datetime
 
 app = FastAPI(title="Agri Supply Chain API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class BatchCreate(BaseModel):
@@ -175,15 +185,16 @@ def get_trace(batch_id:str):
         raise HTTPException(status_code=400, detail= str(e))
 
 @app.get("/api/marketplace")
-def get_marketplace(crop_type: str, min_carbon:float):
+def get_marketplace(crop_type: Optional[str] = None, min_carbon: Optional[float] = None):
     try:
-        response=(
-            supabase.table("buyer_marketplace")
-            .select("*")
-            .eq("crop_type",crop_type)
-            .lte("total_carbon_footprint",min_carbon)
-            .execute()
-        )
+        query = supabase.table("buyer_marketplace").select("*")
+        
+        if crop_type:
+            query = query.eq("crop_type", crop_type)
+        if min_carbon is not None:
+            query = query.lte("total_carbon_footprint", min_carbon)
+            
+        response = query.execute()
 
         return{
             "results": response.data

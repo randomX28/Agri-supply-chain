@@ -5,11 +5,10 @@ from io import BytesIO
 def generate_qr_base64(batch_id: str) -> str:
     # 1. Ensure batch_id is a string (prevents UUID objects from crashing)
     batch_id_str = str(batch_id)
-    tracking_url = f"https://your-frontend-website.com/trace/{batch_id_str}"
 
-    # 2. Generate the QR code
+    # 2. Generate the QR code containing ONLY the batch ID (prevents URL redirects)
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
-    qr.add_data(tracking_url)
+    qr.add_data(batch_id_str)
     qr.make(fit=True)
 
     # 3. Create the image (Requires 'Pillow' library installed)
