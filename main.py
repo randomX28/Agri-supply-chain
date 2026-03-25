@@ -202,7 +202,46 @@ def get_marketplace(crop_type: Optional[str] = None, min_carbon: Optional[float]
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    
+@app.get("/api/batches/farmer/{farmer_id}")
+def get_farmer_batches(farmer_id:str):
+    try:
+        response= (supabase.table("batches").select("*").eq("farmer_id", farmer_id)
+        .execute())
+        return{"batches": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/events/operator/{operator_id}")
+def get_operator_events(operator_id:str):
+    try:
+        response = (supabase.table("supply_chain_events")
+        .select("*").eq("operator_id", operator_id)
+        .execute())
+        return{"events":response.data}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/quality/inspector/{inspector_id}")
+def get_quality_checks(inspector_id:str):
+    try:
+        response = (supabase.table("quality_checks")
+        .select("*").eq("inspector_id", inspector_id)
+        .execute())
+        return{"quality_checks": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/storage/history")
+def get_storage_history():
+    try:
+        response = (supabase.table("storage_logs")
+        .select("*")
+        .order("entry_timestamp",desc =True)
+        .execute())
+        return{ "storage_history": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.get("/")
 def test():
