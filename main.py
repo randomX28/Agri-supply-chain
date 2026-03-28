@@ -22,7 +22,7 @@ class PurchaseCreate(BaseModel):
     total_weight:float
 
 class PriceUpdate(BaseModel):
-    base_price_per_kg:str
+    base_price_per_kg:float
 
 class BatchCreate(BaseModel):
     farmer_id: str
@@ -287,17 +287,6 @@ def get_quality_checks(inspector_id:str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/api/storage/facility/{facility_name}")
-def get_storage_history(facility_name:str):
-    try:
-        response=(
-            supabase.table("storage_logs")
-            .select("*").eq("facility_name",facility_name)
-            .execute()
-        )
-        return { "storage_histor" : response.data}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/storage/facility/{facility_name}")
 def get_storage_history(facility_name:str):
