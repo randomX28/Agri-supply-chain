@@ -15,25 +15,39 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+class PurchaseCreate(BaseModel):
+    batch_id:str
+    buyer_id:str
+    final_price_per_kg:float
+    total_weight:float
 
+class PriceUpdate(BaseModel):
+    base_price_per_kg:str
 
 class BatchCreate(BaseModel):
     farmer_id: str
     crop_type: str
     initial_weight: float
+    base_price_per_kg:float
 
 
 @app.post("/api/batches")
 def create_batch(batch: BatchCreate):
 
     try:
-
+        if not batch.crop_type:
+            raise HTTPException(status_code=400, detail="Crop type cannot be empty")
+        if not batch.initial_weight or not batch.base_price_per_kg:
+            raise HTTPException(status_code=400, detail="Initial weight and base price per kg are mandadtory")
+        if batch.initial_weight <=0:
+            raise HTTPException(status_code=400, detail = "weight must be positive")
         response = (
             supabase.table("batches")
             .insert({
                 "farmer_id": batch.farmer_id,
                 "crop_type": batch.crop_type,
-                "initial_weight": batch.initial_weight
+                "initial_weight": batch.initial_weight,
+                "base_price_per_kg":batch.base_price_per_kg
             })
             .execute()
         )
@@ -58,6 +72,7 @@ class SupplyChainEvent(BaseModel):
     location_name:str
     event_type:str
     distance_km:float=0.0
+    transport_mode:str
 
 @app.post("/api/events")
 def log_event(event: SupplyChainEvent):
@@ -69,7 +84,8 @@ def log_event(event: SupplyChainEvent):
                 "operator_id":event.operator_id,
                 "location_name":event.location_name,
                 "event_type":event.event_type,
-                "distance_km":event.distance_km}
+                "distance_km":event.distance_km,
+                "transport_mode":event.transport_mode}
             )
             .execute()
         )
@@ -146,6 +162,46 @@ def storage_check_in(log: StorageLogCreate):
     except Exception as e:
         raise HTTPException(status_code= 400, detail= str(e))
 
+@app.post("/api/purchases", summary ="Handles Buyer checkout")
+def create_purchase(purchase: PurchaseCreate):
+    final_amount = purchase.final_price_per_kg * purchase.total_weight
+    try:
+        response = (
+            supabase.table("purchases")
+            .insert({
+                "batch_id": purchase.batch_id,
+                "buyer_id": purchase.buyer_id,
+                "final_price_per_kg":purchase.final_price_per_kg,
+                "total_weight": purchase.total_weight,
+                "total_amount": final_amount
+            })
+            .execute()
+        )
+        return{
+            "message": "Purchase Successful!",
+            "Order_ details": response.data[0]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail= str(e))
+
+@app.patch("/api/batches/{batch_id}",summary = "Update base_price_per_kg")
+def update_price(batch_id: str, price: PriceUpdate):
+    try:
+        response=(
+            supabase.table("batches")
+            .update({"base_price_per_kg": price.base_price_per_kg})
+            .eq("batch_id", batch_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise HTTPException(status_code=400, detail="Batch not found")
+
+        return{
+        "message" : "Price updated successfully",
+        "new_price" : price.base_price_per_kg}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.patch("/api/storage/check_out/{batch_id}")
 def storage_check_out(batch_id : str):
@@ -231,17 +287,44 @@ def get_quality_checks(inspector_id:str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/api/storage/history")
-def get_storage_history():
+@app.get("/api/storage/facility/{facility_name}")
+def get_storage_history(facility_name:str):
     try:
-        response = (supabase.table("storage_logs")
-        .select("*")
-        .order("entry_timestamp",desc =True)
-        .execute())
-        return{ "storage_history": response.data}
+        response=(
+            supabase.table("storage_logs")
+            .select("*").eq("facility_name",facility_name)
+            .execute()
+        )
+        return { "storage_histor" : response.data}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.get("/api/storage/facility/{facility_name}")
+def get_storage_history(facility_name:str):
+    try:
+        response=(
+            supabase.table("storage_logs")
+            .select("*").eq("facility_name",facility_name)
+            .execute()
+        )
+        return { "storage_history" : response.data}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/purchases/buyer/{buyer_id}")
+def get_purchase_history(buyer_id:str):
+    try:
+        response = (
+            supabase.table("purchases")
+            .select("*")
+            .eq("buyer_id",buyer_id)
+            .execute()
+        )
+        return{
+            "buyer_purchase_history": response.data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/")
 def test():
