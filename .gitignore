@@ -9,3 +9,7 @@ __pycache__/
 
 # Ignore Mac junk files
 .DS_Store
+
+#ignore seed data
+Seed_data.py
+Front_end/*

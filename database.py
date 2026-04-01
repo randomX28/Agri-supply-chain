@@ -9,7 +9,7 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
+key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 # Add this temporary debug line to see what's happening
 print(f"DEBUG: URL found is: {url}") 
