@@ -5,3 +5,4 @@ python-dotenv==1.2.2
 qrcode==8.2
 pillow==12.1.1
 pydantic==2.12.5
+python-multipart==0.0.20
