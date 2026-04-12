@@ -1,15 +1,67 @@
-# Ignore virtual environments
+# AgriChain Project Gitignore
+
+# --- Python / Backend ---
 venv/
+.venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- Node / Frontend (React + Vite) ---
+node_modules/
+Front_end_rest/node_modules/
+dist/
+Front_end_rest/dist/
+.eslintcache
+.stylelintcache
+*.local
+.npm
+.yarn-integrity
+
+# --- Environment & Secrets ---
 .env
+.env.local
+.env.*.local
 
-# Ignore security keys
-.env
-
-# Ignore Mac junk files
-.DS_Store
-
-#ignore seed data
+# --- Project Specific Legacies & Tests ---
 Seed_data.py
-Front_end/*
+dev_tests/
+project_overview.md
+Front_end_rest/old_source/
+Front_end_rest/ignore_these_files/
+ignore_these_files/
+AGRICHAIN_TECHNICAL_OVERVIEW.md
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- OS / Editor ---
+.DS_Store
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+Thumbs.db
