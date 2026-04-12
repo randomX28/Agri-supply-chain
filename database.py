@@ -1,20 +1,15 @@
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 from supabase import create_client, Client
 
-
-# This finds the directory where database.py actually lives
-env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=env_path)
+# Load environment variables (from .env locally, or from system in production)
+load_dotenv()
 
 url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-# Add this temporary debug line to see what's happening
-print(f"DEBUG: URL found is: {url}") 
-
 if not url or not key:
-    raise ValueError("URL or Key missing! Check if .env is in: " + str(env_path))
+    print("⚠️ WARNING: SUPABASE_URL or SERVICE_ROLE_KEY missing from environment!")
 
-supabase: Client = create_client(url, key)
+# Initialize Supabase (will work if url and key are provided in Render Dashboard settings)
+supabase: Client = create_client(url, key) if (url and key) else None
