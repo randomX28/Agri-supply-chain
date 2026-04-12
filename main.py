@@ -10,23 +10,9 @@ from datetime import datetime
 
 app = FastAPI(title="Agri Supply Chain API")
 
-# ── CORS Dynamic Configuration ───────────────────────────────────────────
-# In production, set ALLOWED_ORIGINS in your environment (comma-separated list)
-# e.g., "https://agrichain.onrender.com,https://agrichain.vercel.app"
-allowed_origins_raw = os.getenv("ALLOWED_ORIGINS", "")
-allowed_origins = [o.strip() for o in allowed_origins_raw.split(",") if o.strip()]
-
-# Standard defaults for development and current production
-default_origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://agri-chain-api.onrender.com", # Self-reference
-    "https://agri-chain-frontend.onrender.com", 
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins + default_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
