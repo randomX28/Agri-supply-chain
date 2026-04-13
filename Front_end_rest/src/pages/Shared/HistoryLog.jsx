@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthContext';
 import { API_BASE } from '../../apiConfig';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const ROLE_API_CONFIG = {
   farmer: { urlPath: '/api/batches/farmer/', title: 'My Batches',
@@ -20,13 +21,24 @@ const ROLE_API_CONFIG = {
             <div><span style={{ color: 'var(--text3)' }}>Status:</span> {item.status}</div>
             <div style={{ gridColumn: 'span 2' }}><span style={{ color: 'var(--text3)' }}>Location:</span> {item.farm_location}</div>
           </div>
-          <button 
-            className="submit-btn" 
-            style={{ marginTop: '8px', padding: '6px 12px', fontSize: '12px', background: 'var(--bg3)', color: 'var(--text)', border: '1px solid var(--border2)' }}
-            onClick={() => onAction('updatePrice', item)}
-          >
-            Update Asking Price
-          </button>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+            {item.status === 'created' && (
+              <button 
+                className="submit-btn" 
+                style={{ flex: 1, padding: '6px 12px', fontSize: '12px', background: 'var(--bg3)', color: 'var(--text)', border: '1px solid var(--border2)' }}
+                onClick={() => onAction('updatePrice', item)}
+              >
+                Update Price
+              </button>
+            )}
+            <button 
+              className="submit-btn" 
+              style={{ flex: 1, padding: '6px 12px', fontSize: '12px', background: 'var(--green-dim)', color: 'var(--green)', border: '1px solid var(--green)' }}
+              onClick={() => onAction('viewQR', item)}
+            >
+              📄 Get QR Code
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -118,6 +130,7 @@ export default function HistoryLog() {
   const { role, userId, fullName, email, getAuthHeaders } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBatchForQR, setSelectedBatchForQR] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,18 +166,35 @@ export default function HistoryLog() {
 
       try {
         const headers = await getAuthHeaders();
-        const res = await fetch(`${API_BASE}/api/batches/${item.batch_id}/price`, {
+        const res = await fetch(`${API_BASE}/api/batches/${item.batch_id}`, {
           method: 'PATCH',
           headers,
           body: JSON.stringify({ base_price_per_kg: parseFloat(newPrice) })
         });
-        if (!res.ok) throw new Error("Failed to update price");
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.detail || "Failed to update price");
+        }
         alert("Price updated successfully!");
         window.location.reload(); // Simple refresh to show new data
       } catch (err) {
         alert("Error: " + err.message);
       }
+    } else if (actionType === 'viewQR') {
+      setSelectedBatchForQR(item);
     }
+  };
+
+  const handleDownloadQR = () => {
+    const canvas = document.getElementById("history-batch-qrcode");
+    if (!canvas) return;
+    const pngUrl = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    let downloadLink = document.createElement("a");
+    downloadLink.href = pngUrl;
+    downloadLink.download = `QR_${selectedBatchForQR.batch_id.slice(0,8)}.png`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
   };
 
   const normalizedRole = normalizeRole(role);
@@ -176,14 +206,50 @@ export default function HistoryLog() {
       <div className="page-title">◫ {cfg.title}</div>
       <div className="page-subtitle">View all your past activity records in one place</div>
       
-      <div className="page-subtitle">Historical records for your account operations</div>
-      
       {loading ? <div className="empty">Loading your history...</div> : 
        items.length === 0 ? <div className="empty">No records found.</div> :
        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px', marginTop: '20px' }}>
          {items.map(item => cfg.renderCard(item, handleAction))}
        </div>
       }
+
+      {/* QR Code Modal Overlay */}
+      {selectedBatchForQR && (
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div className="card" style={{ maxWidth: 400, width: '90%', textAlign: 'center', padding: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: 'var(--text)' }}>Batch QR Code</h3>
+              <button onClick={() => setSelectedBatchForQR(null)} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 24, cursor: 'pointer' }}>×</button>
+            </div>
+            
+            <div style={{ background: '#fff', padding: 20, borderRadius: 12, display: 'inline-block', marginBottom: 20, border: '1px solid var(--border)' }}>
+              <QRCodeCanvas 
+                id="history-batch-qrcode" 
+                value={selectedBatchForQR.batch_id} 
+                size={220} 
+                level="H" 
+              />
+            </div>
+
+            <div style={{ textAlign: 'left', background: 'var(--bg)', padding: 15, borderRadius: 8, marginBottom: 20 }}>
+              <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', fontWeight: 600 }}>Batch ID</div>
+              <div style={{ fontSize: 12, color: 'var(--text)', fontFamily: 'monospace', wordBreak: 'break-all', marginTop: 4 }}>{selectedBatchForQR.batch_id}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, marginTop: 10, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+                {selectedBatchForQR.crop_type} · {selectedBatchForQR.initial_weight}kg
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="submit-btn" style={{ background: 'var(--bg3)', color: 'var(--text)' }} onClick={() => setSelectedBatchForQR(null)}>Close</button>
+              <button className="submit-btn" onClick={handleDownloadQR}>Download PNG</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

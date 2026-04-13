@@ -7,7 +7,6 @@ export const ROLES = {
       { id: 'dashboard', path: '/dashboard', label: 'Overview', icon: '⬡' },
       { id: 'create-batch', path: '/farmer/create-batch', label: 'Create Batch', icon: '＋' },
       { id: 'history', path: '/history', label: 'My Batches', icon: '◫' },
-      { id: 'traceability', path: '/traceability', label: 'Traceability', icon: '🔍' },
     ]
   },
   warehouse_manager: {
@@ -19,7 +18,6 @@ export const ROLES = {
       { id: 'checkin', path: '/warehouse/check-in', label: 'Check In', icon: '⤵' },
       { id: 'checkout', path: '/warehouse/check-out', label: 'Check Out', icon: '⤴' },
       { id: 'history', path: '/history', label: 'Storage Log', icon: '◫' },
-      { id: 'traceability', path: '/traceability', label: 'Traceability', icon: '🔍' },
     ]
   },
   transporter: {
@@ -30,7 +28,6 @@ export const ROLES = {
       { id: 'dashboard', path: '/dashboard', label: 'Overview', icon: '⬡' },
       { id: 'log-event', path: '/transport/log-event', label: 'Log Event', icon: '◈' },
       { id: 'history', path: '/history', label: 'All Events', icon: '◫' },
-      { id: 'traceability', path: '/traceability', label: 'Traceability', icon: '🔍' },
     ]
   },
   inspector: {
@@ -41,7 +38,6 @@ export const ROLES = {
       { id: 'dashboard', path: '/dashboard', label: 'Overview', icon: '⬡' },
       { id: 'quality', path: '/inspector/quality-check', label: 'Quality Check', icon: '✦' },
       { id: 'history', path: '/history', label: 'Inspections', icon: '◫' },
-      { id: 'traceability', path: '/traceability', label: 'Traceability', icon: '🔍' },
     ]
   },
   buyer: {

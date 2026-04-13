@@ -244,19 +244,31 @@ def create_purchase(purchase: PurchaseCreate, _user=Depends(get_current_user)):
 @app.patch("/api/batches/{batch_id}", summary="Update base_price_per_kg")
 def update_price(batch_id: str, price: PriceUpdate, _user=Depends(get_current_user)):
     try:
+        # 1. Fetch current batch info to verify status
+        batch_res = supabase.table("batches").select("status").eq("batch_id", batch_id).execute()
+        if not batch_res.data:
+            raise HTTPException(status_code=404, detail="Batch not found")
+        
+        current_status = batch_res.data[0].get("status", "unknown")
+        if current_status != "created":
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Price updates are only permitted for batches in 'created' status. Current status: {current_status}"
+            )
+
+        # 2. Perform the update
         response = (
             supabase.table("batches")
             .update({"base_price_per_kg": price.base_price_per_kg})
             .eq("batch_id", batch_id)
             .execute()
         )
-        if not response.data:
-            raise HTTPException(status_code=400, detail="Batch not found")
-
         return {
             "message": "Price updated successfully",
             "new_price": price.base_price_per_kg
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

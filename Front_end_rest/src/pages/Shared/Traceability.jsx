@@ -16,7 +16,7 @@ const CATEGORY_STYLE = {
 
 export default function Traceability() {
   const { batchId: urlBatchId } = useParams();
-  const { getAuthHeaders } = useAuth();
+  const { getAuthHeaders, role } = useAuth();
   const [batchId, setBatchId] = useState(urlBatchId || '');
   const [timeline, setTimeline] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -58,6 +58,20 @@ export default function Traceability() {
     setBatchId(extractedId);
     fetchTimeline(extractedId);
   };
+
+  // Role Gate: Only Buyers and Admins can access traceability
+  if (role !== 'buyer' && role !== 'admin') {
+    return (
+      <div style={{ padding: '80px 20px', textAlign: 'center', background: 'var(--bg2)', borderRadius: 16, border: '1px solid var(--border)', margin: '40px auto', maxWidth: 600 }}>
+        <div style={{ fontSize: 64, marginBottom: 20 }}>🛡️</div>
+        <h2 style={{ color: 'var(--text)', marginBottom: 12 }}>Access Restricted</h2>
+        <p style={{ color: 'var(--text3)', lineHeight: 1.6 }}>
+          The traceability journey is exclusive to **verified Buyers** and **Platform Administrators**. 
+          <br />If you are a supply chain partner, please use your dedicated dashboard for operations.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="trace-page" style={{ maxWidth: 800, margin: '0 auto' }}>

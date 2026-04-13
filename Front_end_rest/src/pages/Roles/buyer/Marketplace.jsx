@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../AuthContext';
 import { API_BASE } from '../../../apiConfig';
@@ -9,6 +9,8 @@ export default function Marketplace() {
   const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [cart, setCart] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
     let cancelled = false;
@@ -21,8 +23,9 @@ export default function Marketplace() {
         if (!res.ok) throw new Error("Failed to load inventory");
         const data = await res.json();
         if (!cancelled) {
-          // Assume marketplace shows only those that exist
-          setBatches(Array.isArray(data) ? data : (data.batches || []));
+          // Fix: Support 'results' key from backend response
+          const batchList = Array.isArray(data) ? data : (data.results || data.batches || []);
+          setBatches(batchList);
         }
       } catch (err) {
         console.error(err);
@@ -33,6 +36,32 @@ export default function Marketplace() {
     fetchBatches();
     return () => { cancelled = true; };
   }, [getAuthHeaders]);
+
+  // Handle Search & Sort
+  const filteredAndSortedBatches = useMemo(() => {
+    let list = [...batches];
+
+    // Search
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      list = list.filter(b => 
+        (b.crop_type || '').toLowerCase().includes(term) ||
+        (b.farmer_name || '').toLowerCase().includes(term) ||
+        (b.batch_id || '').toLowerCase().includes(term)
+      );
+    }
+
+    // Sort
+    list.sort((a, b) => {
+      if (sortBy === 'price-asc') return (a.base_price_per_kg || 0) - (b.base_price_per_kg || 0);
+      if (sortBy === 'price-desc') return (b.base_price_per_kg || 0) - (a.base_price_per_kg || 0);
+      if (sortBy === 'quality-desc') return (b.quality_score || 0) - (a.quality_score || 0);
+      if (sortBy === 'carbon-asc') return (a.total_carbon_footprint || 0) - (b.total_carbon_footprint || 0);
+      return 0; // newest/default
+    });
+
+    return list;
+  }, [batches, searchTerm, sortBy]);
 
   const addToCart = (batch) => {
     const existing = cart.find(i => i.batch_id === batch.batch_id);
@@ -86,33 +115,92 @@ export default function Marketplace() {
         </button>
       </div>
 
+      {/* Control Bar: Search & Sort */}
+      <div style={{ display: 'flex', gap: 15, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center', background: 'var(--bg2)', padding: '12px 16px', borderRadius: 12, border: '1px solid var(--border)' }}>
+        <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+          <input 
+            type="text" 
+            placeholder="Search crops or farmers..." 
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
+          />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <label style={{ fontSize: 13, color: 'var(--text3)', fontWeight: 500 }}>Sort by:</label>
+          <select 
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: 13, outline: 'none', cursor: 'pointer' }}
+          >
+            <option value="newest">Latest arrivals</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="quality-desc">Highest Quality Score</option>
+            <option value="carbon-asc">Lowest Carbon Footprint</option>
+          </select>
+        </div>
+      </div>
+
       <div className="mp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-        {loading ? <p>Loading Marketplace...</p> : batches.length === 0 ? <p>No batches currently listed for sale.</p> :
-          batches.map(b => (
-            <div className="card" key={b.batch_id} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div className="card-body" style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span className="sc-label" style={{ background: 'var(--green-dim)', color: 'var(--green)', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>{b.crop_type}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text2)' }}>{b.initial_weight} kg</span>
+        {loading ? <p>Loading Marketplace...</p> : filteredAndSortedBatches.length === 0 ? (
+          <div style={{ gridColumn: '1 / -1', padding: '60px 20px', textAlign: 'center', background: 'var(--bg2)', borderRadius: 14, border: '1px dotted var(--border)' }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🔦</div>
+            <h3 style={{ color: 'var(--text)' }}>No batches match your search</h3>
+            <p style={{ color: 'var(--text3)' }}>Try adjusting your filters or searching for a different crop type.</p>
+            <button className="submit-btn" style={{ width: 'auto', marginTop: 16, background: 'var(--bg3)', color: 'var(--text)' }} onClick={() => { setSearchTerm(''); setSortBy('newest'); }}>Clear all filters</button>
+          </div>
+        ) :
+          filteredAndSortedBatches.map(b => (
+            <div className="card" key={b.batch_id} style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: 'hidden' }}>
+              <div className="card-body" style={{ flex: 1, padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span className="sc-label" style={{ background: 'var(--green-dim)', color: 'var(--green)', padding: '2px 10px', borderRadius: 6, fontWeight: 700, fontSize: 11, textTransform: 'uppercase' }}>{b.crop_type}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>₹{b.base_price_per_kg}/kg</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', margin: '12px 0 16px' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text)' }}>{b.seed_variety || 'Standard Variety'}</h3>
-                    <p style={{ color: 'var(--text2)', fontSize: 13, margin: 0 }}>From {b.farm_location}</p>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: 'var(--green)', fontWeight: 700, fontSize: 18 }}>₹{b.base_price_per_kg}/kg</div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text)', fontWeight: 700 }}>{b.farmer_name || 'Verified Producer'}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                    <span style={{ fontSize: 12, color: 'var(--text3)' }}>📍 {b.farm_location || 'Registered Farm'}</span>
                   </div>
                 </div>
-                <div style={{ background: 'var(--bg)', padding: '8px', borderRadius: 8, fontSize: 12, fontFamily: 'monospace', wordBreak: 'break-all', color: 'var(--text)' }}>
-                  ID: {b.batch_id}
+
+                {/* Audit Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '16px 0', padding: '12px', background: 'var(--bg)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Internal Grade</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--purple)' }}>{b.grade || 'A'}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quality Score</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--blue)' }}>{b.quality_score || 0}/100</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gridColumn: 'span 2', borderTop: '1px solid var(--border2)', paddingTop: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Carbon Footprint</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--orange)' }}>🌱 {b.total_carbon_footprint ? b.total_carbon_footprint.toFixed(2) : '0.00'} kg CO₂</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text2)' }}>
+                  <span>Weight: <strong>{b.initial_weight} kg</strong></span>
+                  <span style={{ fontFamily: 'monospace', opacity: 0.6 }}>ID: {b.batch_id.slice(0, 8)}</span>
                 </div>
               </div>
-              <div className="card-footer" style={{ padding: '16px', borderTop: '1px solid var(--border)', background: 'var(--bg2)', display: 'flex', gap: 10 }}>
-                <button className="submit-btn" style={{ flex: 1 }} onClick={() => addToCart(b)}>Add to Order</button>
-                <Link to={`/traceability/${b.batch_id}`} className="submit-btn" style={{ width: 'auto', background: 'var(--bg3)', color: 'var(--text)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  🔍 Trace
+
+              <div className="card-footer" style={{ padding: '16px', borderTop: '1px solid var(--border)', background: 'var(--bg2)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button className="submit-btn" style={{ gridColumn: 'span 2' }} onClick={() => addToCart(b)}>🛒 Add to Order</button>
+                <Link to={`/traceability/${b.batch_id}`} className="submit-btn" style={{ background: 'var(--bg3)', color: 'var(--text)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
+                  🔍 Trace Journey
                 </Link>
+                {b.certificate_url && b.certificate_url !== 'none' ? (
+                  <a href={b.certificate_url} target="_blank" rel="noopener noreferrer" className="submit_btn" style={{ background: 'var(--bg3)', color: 'var(--blue)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, border: '1px solid var(--border2)', borderRadius: 8, fontWeight: 600 }}>
+                    📄 Certificate
+                  </a>
+                ) : (
+                  <button className="submit-btn" disabled style={{ background: 'var(--bg)', color: 'var(--text3)', fontSize: 11, opacity: 0.6 }}>No Certificate</button>
+                )}
               </div>
             </div>
           ))
