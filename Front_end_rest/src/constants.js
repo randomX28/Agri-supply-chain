@@ -47,7 +47,7 @@ export const ROLES = {
     nav: [
       { id: 'dashboard', path: '/dashboard', label: 'Overview', icon: '⬡' },
       { id: 'marketplace', path: '/buyer/marketplace', label: 'Marketplace', icon: '⬡' },
-      { id: 'traceability', path: '/traceability', label: 'Traceability', icon: '🔍' },
+      { id: 'purchases', path: '/buyer/purchases', label: 'Past Purchases', icon: '📜' },
     ]
   },
   admin: {

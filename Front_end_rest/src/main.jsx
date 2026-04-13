@@ -17,6 +17,7 @@ import LogEvent from './pages/Roles/transport/LogEvent'
 import CheckInOut from './pages/Roles/warehouse/CheckInOut'
 import QualityCheck from './pages/Roles/inspector/QualityCheck'
 import Marketplace from './pages/Roles/buyer/Marketplace'
+import PurchaseHistory from './pages/Roles/buyer/PurchaseHistory'
 
 const RootRedirect = () => {
   const { isAuthenticated, role } = useAuth();
@@ -56,6 +57,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             
             {/* Buyer Routes */}
             <Route path="buyer/marketplace" element={<Marketplace />} />
+            <Route path="buyer/purchases" element={<PurchaseHistory />} />
             
             {/* Admin Routes */}
             <Route path="admin" element={<AdminDashboardView />} />

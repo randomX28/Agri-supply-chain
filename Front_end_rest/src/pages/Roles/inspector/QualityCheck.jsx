@@ -101,7 +101,6 @@ export default function QualityCheck() {
                 <option value="A">Grade A (Premium)</option>
                 <option value="B">Grade B (Good)</option>
                 <option value="C">Grade C (Average)</option>
-                <option value="D">Grade D (Substandard)</option>
               </select>
             </div>
             <div className="field">

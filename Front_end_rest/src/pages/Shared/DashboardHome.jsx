@@ -18,7 +18,7 @@ const WELCOME_MAP = {
   warehouse_manager: { headline: 'Welcome, Manager', statLabel: 'Storage Records', hint: 'Manage batch check-ins and check-outs at your facility.' },
   transporter: { headline: 'Welcome, Transporter', statLabel: 'Events Logged', hint: 'Log and track all transport and handling events.' },
   inspector: { headline: 'Welcome, Inspector', statLabel: 'Quality Checks', hint: 'Submit quality inspection reports for batches.' },
-  buyer: { headline: 'Welcome', statLabel: '', hint: 'Browse the marketplace and trace your orders by batch ID.' }
+  buyer: { headline: 'Welcome', statLabel: '', hint: 'Discover premium produce and manage your procurement marketplace.' }
 };
 
 const normalizeRole = (role) => {
@@ -81,17 +81,19 @@ export default function DashboardHome() {
   return (
     <div>
       <div className="page-title">{currentRoleConfig.icon} {w.headline}</div>
-      <div className="page-subtitle">{fullName || email} · {currentRoleConfig.label} · {w.hint}</div>
+      <div className="page-subtitle">{w.hint}</div>
       
       {role === 'buyer' ? (
-        <div className="buyer-quick-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-          <button className="buyer-quick-card" onClick={() => navigate('/buyer/marketplace')}>
-            <div className="bqc-icon">⬡</div><div className="bqc-label">Marketplace</div>
-            <div className="bqc-desc">Browse verified crop listings</div><div className="bqc-arrow">→</div>
-          </button>
-          <button className="buyer-quick-card" onClick={() => navigate('/buyer/traceability')}>
-            <div className="bqc-icon">◎</div><div className="bqc-label">Trace Order</div>
-            <div className="bqc-desc">Lookup batch lifecycle via QR</div><div className="bqc-arrow">→</div>
+        <div className="buyer-quick-grid" style={{ gridTemplateColumns: '1fr', gap: '16px' }}>
+          <button className="buyer-quick-card" onClick={() => navigate('/buyer/marketplace')} style={{ height: 'auto', padding: '30px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div className="bqc-icon" style={{ fontSize: '32px' }}>🛒</div>
+              <div style={{ textAlign: 'left', flex: 1 }}>
+                <div className="bqc-label" style={{ fontSize: '20px' }}>Go to Marketplace</div>
+                <div className="bqc-desc" style={{ fontSize: '14px' }}>Browse results, verify grades, and trace produce journeys</div>
+              </div>
+              <div className="bqc-arrow" style={{ fontSize: '24px' }}>→</div>
+            </div>
           </button>
         </div>
       ) : (

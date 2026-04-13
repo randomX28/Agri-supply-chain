@@ -78,6 +78,7 @@ class QualityCheck(BaseModel):
     grade: str = Field(..., pattern="^(A|B|C)$")
     contamination_flag: bool
     certificate_url: str
+    notes: Optional[str] = None
 
 class StorageLogCreate(BaseModel):
     batch_id: str = Field(...)
@@ -186,7 +187,8 @@ def submit_quality_check(qc: QualityCheck, _user=Depends(get_current_user)):
                 "moisture_percentage": qc.moisture_percentage,
                 "grade": qc.grade,
                 "contamination_flag": qc.contamination_flag,
-                "certificate_url": qc.certificate_url
+                "certificate_url": qc.certificate_url,
+                "notes": qc.notes
             })
             .execute()
         )
