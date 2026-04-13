@@ -22,7 +22,7 @@ import PurchaseHistory from './pages/Roles/buyer/PurchaseHistory'
 const RootRedirect = () => {
   const { isAuthenticated, role } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (role === 'admin' || role === 'auditor') return <Navigate to="/admin" replace />;
+  if (role === 'admin') return <Navigate to="/admin" replace />;
   return <Navigate to="/dashboard" replace />;
 };
 
@@ -34,31 +34,31 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           {/* Default Entry: Login Page */}
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
-          
+
           {/* Protected App Routes (Wrapped in AppLayout) */}
           <Route element={<AppLayout />}>
             <Route path="dashboard" element={<DashboardHome />} />
             <Route path="history" element={<HistoryLog />} />
             <Route path="traceability" element={<Traceability />} />
             <Route path="traceability/:batchId" element={<Traceability />} />
-            
+
             {/* Farmer Routes */}
             <Route path="farmer/create-batch" element={<CreateBatch />} />
-            
+
             {/* Transport Routes */}
             <Route path="transport/log-event" element={<LogEvent />} />
-            
+
             {/* Warehouse Routes */}
             <Route path="warehouse/check-in" element={<CheckInOut />} />
             <Route path="warehouse/check-out" element={<CheckInOut />} />
-            
+
             {/* Inspector Routes */}
             <Route path="inspector/quality-check" element={<QualityCheck />} />
-            
+
             {/* Buyer Routes */}
             <Route path="buyer/marketplace" element={<Marketplace />} />
             <Route path="buyer/purchases" element={<PurchaseHistory />} />
-            
+
             {/* Admin Routes */}
             <Route path="admin" element={<AdminDashboardView />} />
           </Route>

@@ -91,7 +91,7 @@ class AdminUserCreate(BaseModel):
     email: str = Field(...)
     password: str = Field(..., min_length=6)
     full_name: str = Field(...)
-    role: str = Field(..., pattern="^(farmer|inspector|transporter|warehouse_manager|buyer|admin|auditor)$")
+    role: str = Field(..., pattern="^(farmer|inspector|transporter|warehouse_manager|buyer|admin)$")
 
 class AdminUserStatusUpdate(BaseModel):
     status: str = Field(..., pattern="^(active|inactive)$")

@@ -6,12 +6,12 @@ import { supabase } from '../../supabaseClient';
 export default function LoginPage() {
   const [isSignIn, setIsSignIn] = useState(true);
   const [role, setRole] = useState('farmer');
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-  
+
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,7 +34,7 @@ export default function LoginPage() {
   const handleSignIn = async (e) => {
     e.preventDefault();
     setErrorMsg('');
-    
+
     if (!email || !password) {
       setErrorMsg('Please enter email and password.');
       return;
@@ -42,20 +42,20 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     const { error: authErr, data } = await supabase.auth.signInWithPassword({ email, password });
-    
+
     if (authErr) {
       setErrorMsg(authErr.message);
       setIsSubmitting(false);
       return;
     }
-    
+
     if (data?.user?.user_metadata?.status === "inactive") {
       await supabase.auth.signOut();
       setErrorMsg("Your account has been deactivated by an administrator.");
       setIsSubmitting(false);
       return;
     }
-    
+
     // AuthContext subscriber will pick up the session and navigate via AppLayout
   };
 
@@ -159,10 +159,10 @@ export default function LoginPage() {
               <button type="button" className={`role-pill ${role === 'farmer' ? 'active' : ''}`} onClick={() => setRole('farmer')}>
                 <span className="rp-icon">🌱</span><span className="rp-name">Farmer</span><span className="rp-check">✓</span>
               </button>
-              <button type="button" className={`role-pill ${role === 'warehouse' ? 'active' : ''}`} onClick={() => setRole('warehouse')}>
+              <button type="button" className={`role-pill ${role === 'warehouse_manager' ? 'active' : ''}`} onClick={() => setRole('warehouse_manager')}>
                 <span className="rp-icon">🏭</span><span className="rp-name">Warehouse</span><span className="rp-check">✓</span>
               </button>
-              <button type="button" className={`role-pill ${role === 'transport' ? 'active' : ''}`} onClick={() => setRole('transport')}>
+              <button type="button" className={`role-pill ${role === 'transporter' ? 'active' : ''}`} onClick={() => setRole('transporter')}>
                 <span className="rp-icon">🚚</span><span className="rp-name">Transport</span><span className="rp-check">✓</span>
               </button>
               <button type="button" className={`role-pill ${role === 'inspector' ? 'active' : ''}`} onClick={() => setRole('inspector')}>
@@ -171,8 +171,8 @@ export default function LoginPage() {
               <button type="button" className={`role-pill ${role === 'buyer' ? 'active' : ''}`} onClick={() => setRole('buyer')}>
                 <span className="rp-icon">🛒</span><span className="rp-name">Buyer</span><span className="rp-check">✓</span>
               </button>
-              <button type="button" className={`role-pill ${role === 'admin' ? 'active' : ''}`} onClick={() => setRole('admin')} style={{ borderColor: role === 'admin' ? '#f43f5e' : 'var(--border)'}}>
-                <span className="rp-icon" style={{ backgroundColor: role === 'admin' ? '#f43f5e22' : ''}}>👑</span><span className="rp-name">Admin</span><span className="rp-check">✓</span>
+              <button type="button" className={`role-pill ${role === 'admin' ? 'active' : ''}`} onClick={() => setRole('admin')} style={{ borderColor: role === 'admin' ? '#f43f5e' : 'var(--border)' }}>
+                <span className="rp-icon" style={{ backgroundColor: role === 'admin' ? '#f43f5e22' : '' }}>👑</span><span className="rp-name">Admin</span><span className="rp-check">✓</span>
               </button>
             </div>
 

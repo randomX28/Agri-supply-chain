@@ -308,7 +308,7 @@ function AdminUsers() {
             <input required value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" style={{ padding: "7px 10px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13 }} />
             <input required type="text" value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="Temporary Password (min 6 chars)" style={{ padding: "7px 10px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13 }} minLength={6} />
             <select value={newRole} onChange={e => setNewRole(e.target.value)} style={{ padding: "7px 10px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13 }}>
-              {["farmer", "inspector", "transporter", "warehouse_manager", "buyer", "auditor", "admin"].map(r => <option key={r} value={r}>{r}</option>)}
+              {["farmer", "inspector", "transporter", "warehouse_manager", "buyer", "admin"].map(r => <option key={r} value={r}>{r}</option>)}
             </select>
             <div style={{ display: "flex", gap: 8, gridColumn: "1 / -1" }}>
               <Btn type="submit" variant="primary" disabled={addLdg}>{addLdg ? "Adding..." : "Confirm & Add User"}</Btn>
@@ -423,14 +423,14 @@ function AuditorIntegrity() {
   const checks = display?.checks || [];
   const alerts = (alertData?.alerts || []).filter(a => !a.resolved);
   const passed = display?.passed ?? 0;
-  
+
   const run = () => {
     setManualLoading(true);
     fetch(`${API_BASE}/api/auditor/integrity`)
       .then(r => r.json())
       .then(d => { setManualData(d); setLastRun(new Date().toLocaleTimeString()); setManualLoading(false); });
   };
-  
+
   if (loading || alrtLoading) return <Spinner />;
   if (error) return <ErrBox msg={error} />;
 
@@ -544,13 +544,13 @@ function AuditorExport() {
 // �// ── App shell — receives real auth props from AppLayout context ──────────
 // ── Pages Map ─────────────────────────────────────────────────────────────
 const PAGES = {
-  "admin-dash":      { component: AdminDash },
+  "admin-dash": { component: AdminDash },
   "admin-analytics": { component: AdminAnalytics },
-  "admin-users":     { component: AdminUsers },
-  "aud-logs":        { component: AuditorLogs },
-  "aud-integrity":   { component: AuditorIntegrity },
-  "aud-reports":     { component: AuditorReports },
-  "aud-export":      { component: AuditorExport },
+  "admin-users": { component: AdminUsers },
+  "aud-logs": { component: AuditorLogs },
+  "aud-integrity": { component: AuditorIntegrity },
+  "aud-reports": { component: AuditorReports },
+  "aud-export": { component: AuditorExport },
 };
 
 export default function AdminDashboardView() {
