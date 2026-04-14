@@ -43,6 +43,8 @@ Front_end_rest/dist/
 
 # --- Project Specific Legacies & Tests ---
 Seed_data.py
+fix_roles.py
+scratch/
 dev_tests/
 project_overview.md
 Front_end_rest/old_source/
