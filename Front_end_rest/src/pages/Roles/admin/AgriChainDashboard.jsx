@@ -49,7 +49,15 @@ const TOKEN = {
 
 // ── Tiny helpers ──────────────────────────────────────────────────────────────
 const severityColor = s => s === "Critical" ? "red" : s === "Warning" ? "amber" : s === "Suspicious" ? "red" : s === "Pass" ? "green" : s === "Fail" ? "red" : "gray";
-const roleColor = r => ({ Farmer: "green", Inspector: "blue", "Quality Inspector": "blue", Transporter: "amber", Buyer: "purple", Admin: "red", System: "gray", Auditor: "blue" }[r] || "gray");
+const roleColor = r => ({ 
+  farmer: "green", 
+  inspector: "blue", 
+  transporter: "amber", 
+  warehouse_manager: "blue", 
+  buyer: "purple", 
+  admin: "red", 
+  system: "gray" 
+}[r] || "gray");
 
 const Badge = ({ label, color = "gray", size = "sm" }) => {
   const t = TOKEN[color] || TOKEN.gray;
@@ -235,6 +243,7 @@ function AdminUsers() {
   const [reloadKey, setReloadKey] = useState(0);
   const { data, loading, error } = useFetch("/api/admin/users?t=" + reloadKey);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("role"); // "newest", "name", "role"
 
   // Form State
   const [showAdd, setShowAdd] = useState(false);
@@ -292,11 +301,19 @@ function AdminUsers() {
   if (error) return <ErrBox msg={error} />;
 
   const users = data?.users || [];
-  const filtered = users.filter(u =>
-    !search || u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase()) ||
-    u.role?.toLowerCase().includes(search.toLowerCase())
-  );
+
+  const filtered = users
+    .filter(u =>
+      !search || u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase()) ||
+      u.role?.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === "name") return (a.full_name || "").localeCompare(b.full_name || "");
+      if (sortBy === "role") return (a.role || "").localeCompare(b.role || "");
+      if (sortBy === "newest") return new Date(b.created_at) - new Date(a.created_at);
+      return 0;
+    });
 
   return (
     <div>
@@ -325,8 +342,16 @@ function AdminUsers() {
       <Card>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <SectionTitle>All users ({filtered.length})</SectionTitle>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email or role..."
-            style={{ padding: "5px 10px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, width: 220, outline: "none" }} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+              style={{ padding: "5px 10px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, outline: "none", background: "var(--bg2)", color: "var(--text)", cursor: "pointer" }}>
+              <option value="newest">Newest First</option>
+              <option value="name">Alphabetical (Name)</option>
+              <option value="role">Group by Role</option>
+            </select>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email or role..."
+              style={{ padding: "5px 10px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, width: 220, outline: "none" }} />
+          </div>
         </div>
         {filtered.map((u, i) => {
           const initials = (u.full_name || u.email || "?").split(" ").map(w => w[0] || "").join("").slice(0, 2).toUpperCase();
@@ -424,9 +449,10 @@ function AuditorIntegrity() {
   const alerts = (alertData?.alerts || []).filter(a => !a.resolved);
   const passed = display?.passed ?? 0;
 
-  const run = () => {
+  const run = async () => {
     setManualLoading(true);
-    fetch(`${API_BASE}/api/auditor/integrity`)
+    const headers = await getAuthHeaders();
+    fetch(`${API_BASE}/api/auditor/integrity`, { headers })
       .then(r => r.json())
       .then(d => { setManualData(d); setLastRun(new Date().toLocaleTimeString()); setManualLoading(false); });
   };

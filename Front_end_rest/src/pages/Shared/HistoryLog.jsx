@@ -115,7 +115,7 @@ const ROLE_API_CONFIG = {
 
 const normalizeRole = (role) => {
   if (role === 'transport' || role === 'transporter') return 'transporter';
-  if (role === 'warehouse' || role === 'operator' || role === 'warehouse_manager') return 'warehouse_manager';
+  if (role === 'warehouse' || role === 'warehouse_manager') return 'warehouse_manager';
   return role;
 };
 

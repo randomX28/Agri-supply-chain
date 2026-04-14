@@ -91,6 +91,7 @@ class AdminUserCreate(BaseModel):
     email: str = Field(...)
     password: str = Field(..., min_length=6)
     full_name: str = Field(...)
+    # Canonical Roles: farmer, inspector, transporter, warehouse_manager, buyer, admin
     role: str = Field(..., pattern="^(farmer|inspector|transporter|warehouse_manager|buyer|admin)$")
 
 class AdminUserStatusUpdate(BaseModel):
