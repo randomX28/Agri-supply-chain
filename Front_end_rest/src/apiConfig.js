@@ -1,5 +1,8 @@
 // Centralized API configuration
-// Switch between localhost for local development and render API for production
+// VITE_API_BASE is set in Vercel dashboard (production) or .env.local (development)
+// Fallback chain: env var → current Render URL → localhost
 
-export const API_BASE = "https://agri-chain-api.onrender.com";
-// export const API_BASE = "http://localhost:8000";
+export const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  "https://agri-chain-api.onrender.com" ||
+  "http://localhost:8000";

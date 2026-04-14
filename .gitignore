@@ -47,6 +47,8 @@ fix_roles.py
 scratch/
 dev_tests/
 project_overview.md
+demo_video.py
+demo_output/
 Front_end_rest/old_source/
 Front_end_rest/ignore_these_files/
 ignore_these_files/
@@ -67,3 +69,5 @@ yarn-error.log*
 *.swp
 *.swo
 Thumbs.db
+Sample files/Quality Certificate.pdf
+.gitignore
